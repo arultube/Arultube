@@ -1,31 +1,32 @@
-// server.js
-
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const videoRoutes = require('./routes/videoRoutes');
 const cors = require('cors');
+const videoRoutes = require('./routes/videoRoutes'); // ✅ Route import
 
+// Load environment variables from .env file
 dotenv.config();
+
+// Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
 
-// ✅ Health check route
+// ✅ Health check route for Render
 app.get('/healthz', (req, res) => {
   res.status(200).send('OK');
 });
 
-// ✅ Video API route
+// ✅ Video upload API route
 app.use('/api/videos', videoRoutes);
 
-// ✅ MongoDB connect and server start
+// ✅ Connect to MongoDB and start the server
 const PORT = process.env.PORT || 5000;
-mongoose
-  .connect(process.env.MONGODB_URI)
+
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
     });
   })
-  .catch((err) => console.log(err));
+  .catch((err) => console.error('❌ MongoDB connection failed:', err));
