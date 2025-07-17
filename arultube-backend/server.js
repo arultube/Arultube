@@ -1,26 +1,33 @@
 const express = require('express');
-const multer = require('multer');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const videoRoutes = require('./routes/videoRoutes');
 const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.static('uploads'));
+app.use(express.json());
 
-const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB Connected'))
+.catch((err) => console.error('❌ MongoDB Connection Error:', err));
+
+// ✅ Health Check Route for Render
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
 });
 
-const upload = multer({ storage });
+// API Route
+app.use('/api/videos', videoRoutes);
 
-app.post('/upload', upload.single('video'), (req, res) => {
-  res.json({ message: 'Video uploaded successfully!' });
-});
-
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`Backend running on port ${process.env.PORT || 5000}`);
+// Start the Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
